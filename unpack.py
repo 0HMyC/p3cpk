@@ -1,6 +1,12 @@
 import os
 import rcpk
 
+logVerbose = False
+
+def verboseLog(*inp):
+	if logVerbose:
+		print(*inp)
+
 def findCPKS(start, outDir):
 	for filFol in os.listdir(start):
 		cur = os.path.join(start, filFol)
@@ -16,6 +22,7 @@ def unpackCPK(input, outDir):
 	cpkBytes = None
 	# Get output folder
 	outputFolder = None
+	rcpk.logVerbose = logVerbose # set rcpk verbose mode
 	if isinstance(outDir, str):
 		outputFolder = os.path.join(outDir, input[input.rindex('/')+1:-4] + '_extracted')
 	else:

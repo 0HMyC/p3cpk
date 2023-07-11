@@ -11,10 +11,12 @@ parser.add_argument('-u', '--unpack', help="Unpack file/files in folder. Redunda
 parser.add_argument('-p', '--pack', help="Pack folder/folders in folder.", action='store_true')
 parser.add_argument('-o', '--output', help="Override the output path for files.")
 # parser.add_argument('-q', '--quiet', help="Minimizes messages printed.", action='store_true')
-# parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
+parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
 # parser.add_argument('--overwrite', help="Overwrite existing extracted files.", action='store_true')
 # parser.add_argument('--license', help="Prints the license for the script.", action='store_true')
 args = parser.parse_args()
+
+unpack.logVerbose = args.verbose # set verbose logging mode
 
 def packCPK():
 	print("Packing not implemented yet!")

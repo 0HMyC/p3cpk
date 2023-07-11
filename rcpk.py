@@ -1,5 +1,11 @@
 import struct
 
+logVerbose = False
+
+def verboseLog(*inp):
+	if logVerbose:
+		print(*inp)
+
 def unpack(fmt, bytes):
 	return struct.unpack(fmt, bytes)[0]
 
@@ -43,7 +49,7 @@ def readHeader(header):
 	# load header data into dict
 	fileHeader["FileName"] = readFileName(header[:16])
 	if fileHeader["FileName"] == "":
-		print("File name started with null termination! Not reading file!")
+		verboseLog("File name started with null termination! Not reading file!")
 		return -1
 	fileHeader["Unknown0"] = header[16:0xFC]
 	fileHeader["FileSize"] = correctFileSize(unpack('<I', header[0xFC:0x100]))
