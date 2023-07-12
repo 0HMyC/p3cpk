@@ -8,16 +8,40 @@ parser = argparse.ArgumentParser(description="Extractor/Packer of Persona 3 FES 
 operateGroup = parser.add_mutually_exclusive_group(required=True)
 operateGroup.add_argument('-i', '--file', metavar='file', help="The CPK file to extract.")
 operateGroup.add_argument('-f', '--folder', metavar='folder', help="The folder containing CPK files to extract.")
+operateGroup.add_argument('-l', '--license', help="Prints the license for the script.", action='store_true')
 parser.add_argument('-u', '--unpack', help="Unpack file/files in folder. Redundant when operating on a file.", action='store_true')
 parser.add_argument('-p', '--pack', help="Pack folder to CPK.", action='store_true')
 parser.add_argument('-o', '--output', help="Override the output path for files.")
-# parser.add_argument('-q', '--quiet', help="Minimizes messages printed.", action='store_true')
 parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
 # parser.add_argument('--overwrite', help="Overwrite existing extracted files.", action='store_true')
-# parser.add_argument('--license', help="Prints the license for the script.", action='store_true')
 args = parser.parse_args()
 
 unpack.logVerbose = args.verbose # set verbose logging mode
+
+#print script license
+
+if args.license:
+	print("""MIT License
+
+Copyright (c) 2023 0HMyC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.""")
 
 #force unix paths & call functions
 if isinstance(args.file, str):
