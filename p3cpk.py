@@ -1,6 +1,7 @@
 import argparse
 import os
 import unpack
+import pack
 # import rcpk
 
 parser = argparse.ArgumentParser(description="Extractor/Packer of Persona 3 FES .cpk files.")
@@ -8,7 +9,7 @@ operateGroup = parser.add_mutually_exclusive_group(required=True)
 operateGroup.add_argument('-i', '--file', metavar='file', help="The CPK file to extract.")
 operateGroup.add_argument('-f', '--folder', metavar='folder', help="The folder containing CPK files to extract.")
 parser.add_argument('-u', '--unpack', help="Unpack file/files in folder. Redundant when operating on a file.", action='store_true')
-parser.add_argument('-p', '--pack', help="Pack folder/folders in folder.", action='store_true')
+parser.add_argument('-p', '--pack', help="Pack folder to CPK.", action='store_true')
 parser.add_argument('-o', '--output', help="Override the output path for files.")
 # parser.add_argument('-q', '--quiet', help="Minimizes messages printed.", action='store_true')
 parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
@@ -17,9 +18,6 @@ parser.add_argument('-v', '--verbose', help="Prints extra messages when extracti
 args = parser.parse_args()
 
 unpack.logVerbose = args.verbose # set verbose logging mode
-
-def packCPK():
-	print("Packing not implemented yet!")
 
 #force unix paths & call functions
 if isinstance(args.file, str):
@@ -37,4 +35,4 @@ elif isinstance(args.folder, str):
 	if args.unpack:
 		unpack.findCPKS(args.folder, args.output)
 	else:
-		packCPK()
+		pack.packCPK(args.folder, args.output)

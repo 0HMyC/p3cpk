@@ -47,11 +47,11 @@ def readHeader(header):
 		"FileSize": None
 		}
 	# load header data into dict
-	fileHeader["FileName"] = readFileName(header[:16])
+	fileHeader["FileName"] = readFileName(header[:14])
 	if fileHeader["FileName"] == "":
 		verboseLog("File name started with null termination! Not reading file!")
 		return -1
-	fileHeader["Unknown0"] = header[16:0xFC]
+	fileHeader["Unknown0"] = header[14:0xFC]
 	fileHeader["FileSize"] = correctFileSize(unpack('<I', header[0xFC:0x100]))
 	return fileHeader
 	# print(readFileName(header[:16]))
