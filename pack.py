@@ -53,7 +53,7 @@ def packCPK(input, outDir):
 				cpkOut.write(cpkData)
 		else:
 			#TODO: Add ability to generate generic header, if that's even a good idea
-			print("Warning! Could not locate Headers directory in", input + "/Headers! Folder will not be packed into CPK!")
+			print("Warning! Could not locate Headers directory in", headersDir + "! Folder will not be packed into CPK!")
 	else:
-		print("Error! Could not locate Files directory in", input + "/Files! Folder will not be packed into CPK!")
+		print("Error! Could not locate Files directory in", filesDir + "! Folder will not be packed into CPK!")
 		return
