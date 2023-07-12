@@ -1,6 +1,8 @@
 # p3cpk
 A Python script that allows for extracting and packing Persona 3's CPK files.
 
+Requires Python 3.3+ (determined using [vermin.](https://github.com/netromdk/vermin))
+
 ## Usage
 To unpack a single .cpk file:
 
