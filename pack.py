@@ -34,7 +34,6 @@ def packFiles(wDir, whDir):
 def packCPK(input, outDir):
 	# Get output folder
 	outputFolder = None
-	# os.makedirs(outDir, exist_ok=True) # Make output folder if it doesn't exist
 	if isinstance(outDir, str):
 		outputFolder = os.path.join(outDir, input[input.rindex('/')+1:] + '.cpk')
 	else:

@@ -15,10 +15,9 @@ def readFileName(bytes):
 		if bytes[i] != 0:
 			cStr += chr(bytes[i])
 		else:
-			# print("String null termination at", i, cStr)
+			verboseLog("String null termination at", i, cStr)
 			break
 	return cStr
-		# print(i)
 
 def correctFileSize(inpSize):
 	extraOffset = inpSize & 0xFF
@@ -40,7 +39,6 @@ def correctFileSize(inpSize):
 	return inpSize + extraOffset
 
 def readHeader(header):
-	# print("Not fully implemented!")
 	fileHeader = {
 		"FileName": None,
 		"Unknown0": None,
@@ -54,4 +52,3 @@ def readHeader(header):
 	fileHeader["Unknown0"] = header[14:0xFC]
 	fileHeader["FileSize"] = correctFileSize(unpack('<I', header[0xFC:0x100]))
 	return fileHeader
-	# print(readFileName(header[:16]))
