@@ -10,7 +10,7 @@ the currently known parts of the header.
 
 | Offset | Datatype | Length (bytes) | Description |
 | ------ | -------- | -------------- | ----------- |
-| 0x0    | String   | 0x10           | Contains the name of the packed file |
+| 0x0    | String   | 0xE            | Contains the name of the packed file |
 | 0xFC   | Unsigned Int | 0x4        | The size of the packed file in bytes |
 
 The bytes of the packed file follow immediately afterward.
