@@ -14,9 +14,9 @@ Each file stored in a CPK is preceeded by a header that is 0x100 bytes long. The
 
 The stored file's bytes follow immediately afterward.
 ## File Byte Alignment
-While the file size listed in the header data is accurate for how large the file is, some files need to be padded in order to reach one of multiple different byte alignments. The reasoning for the padding is not yet known or understood.
+While the file size listed in the header data is accurate for how large the file is, some files need to be padded in order to reach one of multiple different byte alignments. Some files appear to place actual file data in this padding (Such as C04_1204.CPK, which seems to place Single precision floats within this supposed padding,) indicating it serves a purpose beyond just aligning the file correctly. These files are the exception, however, as most files either have null bytes in this extra data, or have repeated bytes with no clear purpose, meaning that the purpose behind the file padding is still unknown as of writing. 
 
-The byte alignments appear to be based on the least significant byte `(0x000000FF)`, and the possible hex values for the alignments are as follows:
+The byte alignments appear to be based on the least significant byte `(0x000000FF)`, and the known possible hex values for the alignments are as follows:
 
 | Alignments |
 | ---------- |
