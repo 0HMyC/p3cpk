@@ -1,13 +1,13 @@
 import os
 import rcpk
+import logger as log
 
-logVerbose = False
-
-def verboseLog(*inp):
-	if logVerbose:
-		print(*inp)
+initPath = None
 
 def findCPKS(start, outDir):
+	global initPath # Python plz
+	if initPath == None:
+		initPath = start
 	for filFol in os.listdir(start):
 		cur = os.path.join(start, filFol)
 		# Check if we need to search through more folders,
@@ -15,32 +15,49 @@ def findCPKS(start, outDir):
 		if os.path.isdir(cur):
 			findCPKS(cur, outDir)
 		elif os.path.isfile(cur) and cur.lower().endswith('.cpk'):
-			print("Unpacking", cur)
+			log.compliantLog("Unpacking", cur)
 			unpackCPK(cur, outDir)
+
+def createOutDir(desOut, inFile):
+	outFol = None
+	if isinstance(desOut, str):
+		# Mirror input directory structure on output;
+		# nicer to navigate + prevents potential file overwrite issues
+		if isinstance(initPath, str):
+			mirrorDir = inFile[len(initPath)+len(os.sep):inFile.rindex(os.sep)]
+			outFol = os.path.join(desOut, mirrorDir, inFile[inFile.rindex(os.sep)+len(os.sep):-4] + '_extracted')
+			log.verboseLog("Mirrored Output Directory:", outFol)
+		else:
+			outFol = os.path.join(desOut, inFile[inFile.rindex(os.sep)+len(os.sep):-4] + '_extracted')
+	else:
+		outFol = os.path.join(inFile[:inFile.rindex(os.sep)], inFile[inFile.rindex(os.sep)+len(os.sep):-4] + '_extracted')
+	os.makedirs(outFol, exist_ok=True) # Make output folder if it doesn't exist
+	return outFol
 
 def unpackCPK(input, outDir):
 	cpkBytes = None
-	# Get output folder
-	outputFolder = None
-	rcpk.logVerbose = logVerbose # set rcpk verbose mode
-	if isinstance(outDir, str):
-		outputFolder = os.path.join(outDir, input[input.rindex('/')+1:-4] + '_extracted')
-	else:
-		outputFolder = os.path.join(input[:input.rindex('/')], input[input.rindex('/')+1:-4] + '_extracted')
-	os.makedirs(outputFolder, exist_ok=True) # Make output folder if it doesn't exist
-	#Read CPK file to unpack
+	outputFolder = createOutDir(outDir, input) # Get output folder
+	rcpk.log.args = log.args # set rcpk verbose mode
+	# Read CPK file to unpack
 	with open(input, "rb") as rCPK:
 		cpkBytes = rCPK.read(os.path.getsize(input))
 	i = 0
 	while i < len(cpkBytes):
 		cHeader = rcpk.readHeader(cpkBytes[i:i+0x100])
-		# if cHeader is ever -1 that means the read failed/
-		# we're at the end of the file
+		# if cHeader is ever -1 that means the read failed,
+		# or we're at the end of the file
 		if cHeader == -1:
 			break
 		cFile = cpkBytes[i+0x100:(i+0x100)+cHeader["FileSize"]]
-		i += 0x100 + cHeader["FileSize"]
-		#Create output directories that we need
+		# Sometimes the file "padding" contains extra data...
+		# TODO: What and why is this? NOTE: File sizes preceded by 0x00007F4E
+		# Appear to contain floats at the end, sometimes? Figure that out!!!
+		# Create output directories that we need
+		cExData = None
+		if cHeader["FilePadding"] >= 1:
+			cExData = cpkBytes[i+0x100+cHeader["FileSize"]:i+0x100+cHeader["FileSize"]+cHeader["FilePadding"]]
+		# Shift file index to next file's header
+		i += 0x100 + cHeader["FileSize"] + cHeader["FilePadding"]
 		cDirs = os.path.join(outputFolder, "Files")
 		os.makedirs(cDirs, exist_ok=True)
 		cDirs = os.path.join(outputFolder, "Headers")
@@ -51,3 +68,9 @@ def unpackCPK(input, outDir):
 			cFileOut.write(cFile)
 		with open(os.path.join(outputFolder, "Headers", cHeader["FileName"] + '.bin'), "wb") as headerOut:
 			headerOut.write(cHeader["Unknown0"])
+		# Only write extra data if there's even any in the file
+		if cExData != None:
+			cDirs = os.path.join(outputFolder, "ExtraData")
+			os.makedirs(cDirs, exist_ok=True)
+			with open(os.path.join(outputFolder, "ExtraData", cHeader["FileName"] + '.bin'), "wb") as exOut:
+				exOut.write(cExData)

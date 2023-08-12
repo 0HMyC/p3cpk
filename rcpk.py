@@ -1,10 +1,5 @@
 import struct
-
-logVerbose = False
-
-def verboseLog(*inp):
-	if logVerbose:
-		print(*inp)
+import logger as log
 
 def unpack(fmt, bytes):
 	return struct.unpack(fmt, bytes)[0]
@@ -15,13 +10,13 @@ def readFileName(bytes):
 		if bytes[i] != 0:
 			cStr += chr(bytes[i])
 		else:
-			verboseLog("String null termination at", i, cStr)
+			log.verboseLog("String null terminated early at", i, "| Final String:", cStr)
 			break
 	return cStr
 
 def correctFileSize(inpSize):
 	extraOffset = inpSize & 0xFF
-	#if this is true, the file is properly aligned, and we don't have anything to do
+	# if this is true, the file is properly aligned, and we don't have anything to do
 	if extraOffset == 0 or extraOffset == 0x40 or extraOffset == 0x80 or extraOffset == 0xC0:
 		return inpSize
 	else:
@@ -39,16 +34,15 @@ def correctFileSize(inpSize):
 	return inpSize + extraOffset
 
 def readHeader(header):
-	fileHeader = {
-		"FileName": None,
-		"Unknown0": None,
-		"FileSize": None
-		}
+	fileHeader = {}
 	# load header data into dict
 	fileHeader["FileName"] = readFileName(header[:14])
 	if fileHeader["FileName"] == "":
-		verboseLog("File name started with null termination! Not reading file!")
+		log.verboseLog("File name started with null termination! Not reading file!\n")
 		return -1
+	log.verboseLog("Unpacking file", fileHeader["FileName"], "from CPK...")
 	fileHeader["Unknown0"] = header[14:0xFC]
-	fileHeader["FileSize"] = correctFileSize(unpack('<I', header[0xFC:0x100]))
+	fileHeader["FileSize"] = unpack('<I', header[0xFC:0x100])
+	# Get offset to skip over file padding
+	fileHeader["FilePadding"] = correctFileSize(fileHeader["FileSize"]) - fileHeader["FileSize"]
 	return fileHeader
