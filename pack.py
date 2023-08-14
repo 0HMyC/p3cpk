@@ -7,9 +7,10 @@ import json
 cpkConfig = None
 
 def createPadding(fileSize, file, exDir):
+	global cpkConfig
 	cFilePadding = correctFileSize(fileSize) - fileSize
 	cExData = b''
-	if cFilePadding != 0 and os.path.isdir(exDir):
+	if cFilePadding != 0 and os.path.isdir(exDir) and cpkConfig["SkipExtraData"] == False:
 		cExPath = os.path.join(exDir, file + '.bin')
 		if os.path.getsize(cExPath) == cFilePadding:
 			log.verboseLog("Loading extra file data from", cExPath + '!')

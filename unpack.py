@@ -35,6 +35,11 @@ def createOutDir(desOut, inFile):
 	os.makedirs(outFol, exist_ok=True) # Make output folder if it doesn't exist
 	return outFol
 
+def checkExists(path):
+	if os.path.isfile(path) and logs.args.newonly:
+		return True
+	return False
+
 def unpackCPK(input, outDir):
 	cpkBytes = None
 	outputFolder = createOutDir(outDir, input) # Get output folder
@@ -47,6 +52,7 @@ def unpackCPK(input, outDir):
 	unpackedFiles = []
 	cpkConfig = {
 		"NoNullHeader": False,
+		"SkipExtraData": False,
 		"AutomaticImport": True
 	}
 	while i < len(cpkBytes):
@@ -73,9 +79,7 @@ def unpackCPK(input, outDir):
 		os.makedirs(cDirs, exist_ok=True)
 		unpackedFiles.append(cHeader["FileName"])
 		cDirs = os.path.join(cDirs, cHeader["FileName"])
-		# TODO: Is there a way to DRY this?
-		if os.path.isfile(cDirs) and log.args.newonly:
-			log.alreadyExist(cDirs)
+		if checkExists(cDirs):
 			continue
 		# Write file bytes
 		with open(cDirs, "wb") as cFileOut:
@@ -83,8 +87,7 @@ def unpackCPK(input, outDir):
 		cDirs = os.path.join(outputFolder, "Headers")
 		os.makedirs(cDirs, exist_ok=True)
 		cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
-		if os.path.isfile(cDirs) and log.args.newonly:
-			log.alreadyExist(cDirs)
+		if checkExists(cDirs):
 			continue
 		with open(cDirs, "wb") as headerOut:
 			headerOut.write(cHeader["Unknown0"])
@@ -93,8 +96,7 @@ def unpackCPK(input, outDir):
 			cDirs = os.path.join(outputFolder, "ExtraData")
 			os.makedirs(cDirs, exist_ok=True)
 			cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
-			if os.path.isfile(cDirs) and log.args.newonly:
-				log.alreadyExist(cDirs)
+			if checkExists(cDirs):
 				continue
 			with open(cDirs, "wb") as exOut:
 				exOut.write(cExData)
