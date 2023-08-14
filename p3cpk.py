@@ -21,12 +21,14 @@ args = parser.parse_args()
 unpack.log.args = args
 pack.log.args = args
 
-#print script license
-
+# print script license
+# TODO: just load this from the license file man,
+# the saved file reads aren't worth needing to double-check
+# that this is up-to-date
 if args.license:
 	print("""MIT License
 
-Copyright (c) 2023 0HMyC
+Copyright (c) 2023 0HMyC aka moddaman aka SomeSchmuckPGR
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
