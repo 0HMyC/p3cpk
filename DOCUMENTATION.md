@@ -26,4 +26,4 @@ The byte alignments appear to be based on the least significant byte `(0x000000F
 | 0xC0       |
 
 ## End of CPK file
-The end of a CPK file is usually determined by a "null header," which is a duplicated version of the last file packed into the CPK's header with the main differences being that the file name is null-terminated early, and the file size is set to zero.
+CPK Files typically end with a "null header," which is a duplicated version of the actual last file's header with the first character of the file name replaced with a null byte (null terminating it early,) and the file size is set to zero. However, this null header is not actually necessary for the game to know when the file has ended, so it is perfectly fine to have CPK files without the null header at the end.
