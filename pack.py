@@ -2,15 +2,25 @@ import os
 import struct
 import logger as log
 from rcpk import correctFileSize
+import json
+
+cpkConfig = None
 
 def packFiles(wDir, whDir, wxDir):
 	cpkBytes = None
-	cHeader = None
-	for fil in os.listdir(wDir):
+	cHeader = b''
+	global cpkConfig
+	fileIter = os.listdir(wDir)
+	if cpkConfig["AutomaticImport"] == False:
+		log.verboseLog("AutomaticImport set to false! Iterating over manually-defined files from Config.json!")
+		fileIter = cpkConfig["Files"]
+	for fil in fileIter:
 		print("Packing", fil, "into CPK...")
 		if not os.path.isfile(os.path.join(whDir, fil + '.bin')):
 			print("Can't locate header file for", fil + "! Skipping file!")
 			continue
+		if len(fil) > 14:
+			log.verboseLog("Warning: The file name is longer than 14 characters!\nThis may or may not be a problem!")
 		if cpkBytes == None:
 			# assumes file names can only be 14 characters long
 			cpkBytes = struct.pack('>14s', fil.encode())
@@ -25,7 +35,11 @@ def packFiles(wDir, whDir, wxDir):
 		cFileSize = os.path.getsize(cFile)
 		cpkBytes += struct.pack('<I', cFileSize)
 		# copy last file header to append EOF header thing
-		cHeader = b'\x00' + cpkBytes[-0xFF:-4] + b'\x00\x00\x00\x00'
+		# when NoNullHeader is set to false in the cpk config
+		if cpkConfig["NoNullHeader"] != True:
+			cHeader = b'\x00' + cpkBytes[-0xFF:-4] + b'\x00\x00\x00\x00'
+		else:
+			log.verboseLog("NoNullHeader is true! Not creating null header for end of file!")
 		# append file bytes to cpk bytes
 		with open(cFile, "rb") as cFil:
 			cpkBytes += cFil.read(cFileSize)
@@ -61,6 +75,9 @@ def packCPK(input, outDir):
 	filesDir = os.path.join(input, "Files")
 	headersDir = os.path.join(input, "Headers")
 	exDir = os.path.join(input, "ExtraData")
+	global cpkConfig
+	with open(os.path.join(input, "Config.json"), "r") as jsStream:
+		cpkConfig = json.load(jsStream)
 	if os.path.isdir(filesDir):
 		if os.path.isdir(headersDir):
 			print("Packing", input, "into CPK file...")

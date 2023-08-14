@@ -1,6 +1,7 @@
 import os
 import rcpk
 import logger as log
+import json
 
 initPath = None
 
@@ -42,11 +43,18 @@ def unpackCPK(input, outDir):
 	with open(input, "rb") as rCPK:
 		cpkBytes = rCPK.read(os.path.getsize(input))
 	i = 0
+	# Create a metadata file to use for packing
+	unpackedFiles = []
+	cpkConfig = {
+		"NoNullHeader": False,
+		"AutomaticImport": True
+	}
 	while i < len(cpkBytes):
 		cHeader = rcpk.readHeader(cpkBytes[i:i+0x100])
-		# if cHeader is ever -1 that means the read failed,
-		# or we're at the end of the file
+		# if cHeader is ever -1 that means the read failed
 		if cHeader == -1:
+			# if i < len(cpkBytes):
+				# log.verboseLog("Null header at end of file!")
 			break
 		cFile = cpkBytes[i+0x100:(i+0x100)+cHeader["FileSize"]]
 		# Sometimes the file "padding" contains extra data...
@@ -58,19 +66,26 @@ def unpackCPK(input, outDir):
 			cExData = cpkBytes[i+0x100+cHeader["FileSize"]:i+0x100+cHeader["FileSize"]+cHeader["FilePadding"]]
 		# Shift file index to next file's header
 		i += 0x100 + cHeader["FileSize"] + cHeader["FilePadding"]
+		if i >= len(cpkBytes):
+			log.verboseLog("No null header at end of file!")
+			cpkConfig["NoNullHeader"] = True
 		cDirs = os.path.join(outputFolder, "Files")
 		os.makedirs(cDirs, exist_ok=True)
-		cDirs = os.path.join(outputFolder, "Headers")
-		os.makedirs(cDirs, exist_ok=True)
+		unpackedFiles.append(cHeader["FileName"])
 		# TODO: re-implement no file overwrite option?
 		# Write file bytes
-		with open(os.path.join(outputFolder, "Files", cHeader["FileName"]), "wb") as cFileOut:
+		with open(os.path.join(cDirs, cHeader["FileName"]), "wb") as cFileOut:
 			cFileOut.write(cFile)
-		with open(os.path.join(outputFolder, "Headers", cHeader["FileName"] + '.bin'), "wb") as headerOut:
+		cDirs = os.path.join(outputFolder, "Headers")
+		os.makedirs(cDirs, exist_ok=True)
+		with open(os.path.join(cDirs, cHeader["FileName"] + '.bin'), "wb") as headerOut:
 			headerOut.write(cHeader["Unknown0"])
 		# Only write extra data if there's even any in the file
 		if cExData != None:
 			cDirs = os.path.join(outputFolder, "ExtraData")
 			os.makedirs(cDirs, exist_ok=True)
-			with open(os.path.join(outputFolder, "ExtraData", cHeader["FileName"] + '.bin'), "wb") as exOut:
+			with open(os.path.join(cDirs, cHeader["FileName"] + '.bin'), "wb") as exOut:
 				exOut.write(cExData)
+	cpkConfig["Files"] = unpackedFiles
+	with open(os.path.join(outputFolder, "Config.json"), "w") as cpkJS:
+		json.dump(cpkConfig, cpkJS, indent = 2)
