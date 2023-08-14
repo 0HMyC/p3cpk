@@ -72,20 +72,36 @@ def unpackCPK(input, outDir):
 		cDirs = os.path.join(outputFolder, "Files")
 		os.makedirs(cDirs, exist_ok=True)
 		unpackedFiles.append(cHeader["FileName"])
-		# TODO: re-implement no file overwrite option?
+		cDirs = os.path.join(cDirs, cHeader["FileName"])
+		# TODO: Is there a way to DRY this?
+		if os.path.isfile(cDirs) and log.args.newonly:
+			log.alreadyExist(cDirs)
+			continue
 		# Write file bytes
-		with open(os.path.join(cDirs, cHeader["FileName"]), "wb") as cFileOut:
+		with open(cDirs, "wb") as cFileOut:
 			cFileOut.write(cFile)
 		cDirs = os.path.join(outputFolder, "Headers")
 		os.makedirs(cDirs, exist_ok=True)
-		with open(os.path.join(cDirs, cHeader["FileName"] + '.bin'), "wb") as headerOut:
+		cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
+		if os.path.isfile(cDirs) and log.args.newonly:
+			log.alreadyExist(cDirs)
+			continue
+		with open(cDirs, "wb") as headerOut:
 			headerOut.write(cHeader["Unknown0"])
 		# Only write extra data if there's even any in the file
 		if cExData != None:
 			cDirs = os.path.join(outputFolder, "ExtraData")
 			os.makedirs(cDirs, exist_ok=True)
-			with open(os.path.join(cDirs, cHeader["FileName"] + '.bin'), "wb") as exOut:
+			cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
+			if os.path.isfile(cDirs) and log.args.newonly:
+				log.alreadyExist(cDirs)
+				continue
+			with open(cDirs, "wb") as exOut:
 				exOut.write(cExData)
 	cpkConfig["Files"] = unpackedFiles
-	with open(os.path.join(outputFolder, "Config.json"), "w") as cpkJS:
+	jsPath = os.path.join(outputFolder, "Config.json")
+	if os.path.isfile(jsPath) and log.args.newonly:
+		log.alreadyExist(jsPath)
+		return
+	with open(jsPath, "w") as cpkJS:
 		json.dump(cpkConfig, cpkJS, indent = 2)

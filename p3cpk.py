@@ -14,7 +14,7 @@ parser.add_argument('-p', '--pack', help="Pack folder to CPK.", action='store_tr
 parser.add_argument('-o', '--output', help="Override the output path for files.")
 parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
 parser.add_argument('-q', '--quiet', help="Supresses some messages from being printed. Useful if you want fewer messages in the console.", action='store_true')
-# parser.add_argument('--overwrite', help="Overwrite existing extracted files.", action='store_true')
+parser.add_argument('-n', '--newonly', help="Only allows new files to be written; Prevents overwriting already extracted files.", action='store_true')
 args = parser.parse_args()
 
 # set verbose logging mode

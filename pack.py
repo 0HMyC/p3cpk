@@ -6,6 +6,26 @@ import json
 
 cpkConfig = None
 
+def createPadding(fileSize, file, exDir):
+	cFilePadding = correctFileSize(fileSize) - fileSize
+	cExData = b''
+	if cFilePadding != 0 and os.path.isdir(exDir):
+		cExPath = os.path.join(exDir, file + '.bin')
+		if os.path.getsize(cExPath) == cFilePadding:
+			log.verboseLog("Loading extra file data from", cExPath + '!')
+			with open(cExPath, "rb") as xDat:
+				# in this path, the needed amount of padding matches
+				# the extra data file's size, so we use that instead of
+				# generating padding to try maintaining higher file accuracy
+				cExData = xDat.read(cFilePadding)
+		else:
+			log.verboseLog("Required padding does not match extra data", cExPath + '\'s file size!\nGenerating padding from scratch!')
+			cExData = b'\x00' * cFilePadding
+	else:
+		log.verboseLog("Generating file padding! Amt:", cFilePadding)
+		cExData = b'\x00' * cFilePadding
+	return cExData
+
 def packFiles(wDir, whDir, wxDir):
 	cpkBytes = None
 	cHeader = b''
@@ -20,7 +40,7 @@ def packFiles(wDir, whDir, wxDir):
 			print("Can't locate header file for", fil + "! Skipping file!")
 			continue
 		if len(fil) > 14:
-			log.verboseLog("Warning: The file name is longer than 14 characters!\nThis may or may not be a problem!")
+			log.verboseLog("Warning: The file name is longer than 14 characters!\nThis may or may not cause problems with the packed CPK!")
 		if cpkBytes == None:
 			# assumes file names can only be 14 characters long
 			cpkBytes = struct.pack('>14s', fil.encode())
@@ -44,20 +64,7 @@ def packFiles(wDir, whDir, wxDir):
 		with open(cFile, "rb") as cFil:
 			cpkBytes += cFil.read(cFileSize)
 		# Pad file as needed
-		cFilePadding = correctFileSize(cFileSize) - cFileSize
-		cExData = b''
-		if cFilePadding != 0 and os.path.isdir(wxDir):
-			cExPath = os.path.join(wxDir, fil + '.bin')
-			log.verboseLog("Loading extra file data from", cExPath + '!')
-			with open(cExPath, "rb") as xDat:
-				# since we save the extra data with the same alignment
-				# correction values as we use here, we can just use
-				# that number with no issues, since it'll be the same anyway
-				cExData = xDat.read(cFilePadding)
-		else:
-			log.verboseLog("Generating file padding! Amt:", cFilePadding)
-			cExData = b'\x00' * cFilePadding
-		cpkBytes += cExData
+		cpkBytes += createPadding(cFileSize, fil, wxDir)
 		# end of loop, start over with new file
 	cpkBytes += cHeader
 	return cpkBytes
@@ -70,8 +77,11 @@ def packCPK(input, outDir):
 		outputFile = os.path.join(outDir, input[input.rindex(os.sep)+len(os.sep):].upper() + '.CPK')
 	else:
 		outputFile = os.path.join(input[:input.rindex(os.sep)], input[input.rindex(os.sep)+len(os.sep):].upper() + '.CPK')
-	# get files and headers folder as vars
-	# for easy repeated access
+	if os.path.isfile(outputFile) and log.args.newonly:
+		log.alreadyExist(outputFile)
+		return
+	# get files and headers folder as
+	# vars for easy repeated access
 	filesDir = os.path.join(input, "Files")
 	headersDir = os.path.join(input, "Headers")
 	exDir = os.path.join(input, "ExtraData")

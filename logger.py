@@ -7,3 +7,7 @@ def compliantLog(*inputs):
 def verboseLog(*inputs):
 	if args.verbose:
 		print(*inputs)
+		
+def alreadyExist(path):
+	if args.verbose:
+		print(path, "already exists! Will not overwrite!")
