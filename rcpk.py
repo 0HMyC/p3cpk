@@ -24,8 +24,7 @@ def correctFileSize(inpSize):
 		if extraOffset > 0xC0:
 			extraOffset = (0x100 + shiftedSize) - inpSize
 		elif extraOffset > 0xA0:
-			if extraOffset < 0xC0:
-				extraOffset = (0xC0 + shiftedSize) - inpSize
+			extraOffset = (0xC0 + shiftedSize) - inpSize
 		else:
 			if extraOffset > 0x40:
 				extraOffset = (0x80 + shiftedSize) - inpSize if extraOffset < 0x80 else (0xC0 + shiftedSize) - inpSize
