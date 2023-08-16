@@ -1,14 +1,14 @@
 import os
 import struct
 import logger as log
-from rcpk import correctFileSize
+from rcpk import getPaddingAmt
 import json
 
 cpkConfig = None
 
 def createPadding(fileSize, file, exDir):
 	global cpkConfig
-	cFilePadding = correctFileSize(fileSize) - fileSize
+	cFilePadding = getPaddingAmt(fileSize)
 	cExData = b''
 	if cFilePadding != 0 and os.path.isdir(exDir) and cpkConfig["SkipExtraData"] == False:
 		cExPath = os.path.join(exDir, file + '.bin')

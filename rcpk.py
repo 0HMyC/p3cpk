@@ -14,23 +14,22 @@ def readFileName(bytes):
 			break
 	return cStr
 
-def correctFileSize(inpSize):
+def getPaddingAmt(inpSize):
 	extraOffset = inpSize & 0xFF
 	# if this is true, the file is properly aligned, and we don't have anything to do
 	if extraOffset == 0 or extraOffset == 0x40 or extraOffset == 0x80 or extraOffset == 0xC0:
-		return inpSize
+		return 0
 	else:
 		shiftedSize = (inpSize >> 8) << 8 #remove rightmost byte
-		if extraOffset > 0xC0:
-			extraOffset = (0x100 + shiftedSize) - inpSize
-		elif extraOffset > 0xA0:
-			extraOffset = (0xC0 + shiftedSize) - inpSize
-		else:
-			if extraOffset > 0x40:
-				extraOffset = (0x80 + shiftedSize) - inpSize if extraOffset < 0x80 else (0xC0 + shiftedSize) - inpSize
-			else:
-				extraOffset = (0x40 + shiftedSize) - inpSize
-	return inpSize + extraOffset
+		if extraOffset < 0x40:
+			extraOffset = (0x40+shiftedSize) - inpSize
+		elif extraOffset < 0x80:
+			extraOffset = (0x80+shiftedSize) - inpSize
+		elif extraOffset < 0xC0:
+			extraOffset = (0xC0+shiftedSize) - inpSize
+		else: # always runs if above 0xC0
+			extraOffset = (0x100+shiftedSize) - inpSize
+	return extraOffset
 
 def readHeader(header):
 	fileHeader = {}
@@ -43,5 +42,5 @@ def readHeader(header):
 	fileHeader["Unknown0"] = header[14:0xFC]
 	fileHeader["FileSize"] = unpack('<I', header[0xFC:0x100])
 	# Get offset to skip over file padding
-	fileHeader["FilePadding"] = correctFileSize(fileHeader["FileSize"]) - fileHeader["FileSize"]
+	fileHeader["FilePadding"] = getPaddingAmt(fileHeader["FileSize"])
 	return fileHeader
