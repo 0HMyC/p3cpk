@@ -11,10 +11,10 @@ def findCPKS(start, outDir):
 		initPath = start
 	for filFol in os.listdir(start):
 		cur = os.path.join(start, filFol)
-		# Check if we need to search through more folders,
-		# or extract a CPK. TODO: better comparision method than .lower()?
+		# Check if we need to search more folders, or extract a CPK.
 		if os.path.isdir(cur):
 			findCPKS(cur, outDir)
+		# TODO: better comparision method than .lower()?
 		elif os.path.isfile(cur) and cur.lower().endswith('.cpk'):
 			log.compliantLog("Unpacking", cur)
 			unpackCPK(cur, outDir)
@@ -43,29 +43,25 @@ def checkExists(path):
 def unpackCPK(input, outDir):
 	cpkBytes = None
 	outputFolder = createOutDir(outDir, input) # Get output folder
-	rcpk.log.args = log.args # set rcpk verbose mode
-	# Read CPK file to unpack
-	with open(input, "rb") as rCPK:
+	rcpk.log.args = log.args                   # set rcpk verbose mode
+	with open(input, "rb") as rCPK:            # Read CPK file to unpack
 		cpkBytes = rCPK.read(os.path.getsize(input))
 	i = 0
 	# Create a metadata file to use for packing
-	unpackedFiles = []
 	cpkConfig = {
-		"NoNullHeader": False,
-		"SkipExtraData": False,
-		"AutomaticImport": True
+		"NoNullHeader": False,      # if true, include null header at end of file when packing
+		"GenerateExtraData": False, # if true, generate file padding instead of loading from file
+		"AutomaticImport": True,    # if false, only load manually defined files
+		"Files": []                 # list of files in CPK
 	}
 	while i < len(cpkBytes):
 		cHeader = rcpk.readHeader(cpkBytes[i:i+0x100])
-		# if cHeader is ever -1 that means the read failed
-		if cHeader == -1:
-			# if i < len(cpkBytes):
-				# log.verboseLog("Null header at end of file!")
+		if cHeader == -1: # only -1 on read failure
 			break
 		cFile = cpkBytes[i+0x100:(i+0x100)+cHeader["FileSize"]]
-		# Sometimes the file "padding" contains extra data...
-		# TODO: What and why is this? NOTE: File sizes preceded by 0x00007F4E
-		# Appear to contain floats at the end, sometimes? Figure that out!!!
+		# TODO: Sometimes the file "padding" contains extra data... What and why is this? 
+		# NOTE: File sizes preceded by 0x00007F4E appear to contain floats at the end,
+		# sometimes? Figure that out!!!
 		# Create output directories that we need
 		cExData = None
 		if cHeader["FilePadding"] >= 1:
@@ -77,12 +73,11 @@ def unpackCPK(input, outDir):
 			cpkConfig["NoNullHeader"] = True
 		cDirs = os.path.join(outputFolder, "Files")
 		os.makedirs(cDirs, exist_ok=True)
-		unpackedFiles.append(cHeader["FileName"])
+		cpkConfig["Files"].append(cHeader["FileName"])
 		cDirs = os.path.join(cDirs, cHeader["FileName"])
 		if checkExists(cDirs):
 			continue
-		# Write file bytes
-		with open(cDirs, "wb") as cFileOut:
+		with open(cDirs, "wb") as cFileOut: # Write file bytes
 			cFileOut.write(cFile)
 		cDirs = os.path.join(outputFolder, "Headers")
 		os.makedirs(cDirs, exist_ok=True)
@@ -100,7 +95,6 @@ def unpackCPK(input, outDir):
 				continue
 			with open(cDirs, "wb") as exOut:
 				exOut.write(cExData)
-	cpkConfig["Files"] = unpackedFiles
 	jsPath = os.path.join(outputFolder, "Config.json")
 	if os.path.isfile(jsPath) and log.args.newonly:
 		log.alreadyExist(jsPath)

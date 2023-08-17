@@ -6,35 +6,37 @@ import json
 
 cpkConfig = None
 
+def getPaddingBytes(cnt):
+	log.verboseLog('Generating file padding! Amt:', cnt)
+	return b'\x00' * cnt
+
 def createPadding(fileSize, file, exDir):
 	global cpkConfig
 	cFilePadding = getPaddingAmt(fileSize)
 	cExData = b''
-	if cFilePadding != 0 and os.path.isdir(exDir) and cpkConfig["SkipExtraData"] == False:
+	if cFilePadding != 0 and os.path.isdir(exDir) and cpkConfig["GenerateExtraData"] == False:
 		cExPath = os.path.join(exDir, file + '.bin')
 		if os.path.getsize(cExPath) == cFilePadding:
 			log.verboseLog("Loading extra file data from", cExPath + '!')
 			with open(cExPath, "rb") as xDat:
 				# in this path, the needed amount of padding matches
 				# the extra data file's size, so we use that instead of
-				# generating padding to try maintaining higher file accuracy
+				# generating padding to maintain high file accuracy
 				cExData = xDat.read(cFilePadding)
 		else:
-			log.verboseLog("Required padding does not match extra data", cExPath + '\'s file size!\nGenerating padding from scratch!')
-			cExData = b'\x00' * cFilePadding
+			log.verboseLog("Required padding does not match extra data", cExPath + '\'s file size!')
+			cExData = getPaddingBytes(cFilePadding)
 	else:
-		log.verboseLog("Generating file padding! Amt:", cFilePadding)
-		cExData = b'\x00' * cFilePadding
+		cExData = getPaddingBytes(cFilePadding)
 	return cExData
 
 def packFiles(wDir, whDir, wxDir):
 	cpkBytes = None
 	cHeader = b''
 	global cpkConfig
-	fileIter = os.listdir(wDir)
 	if cpkConfig["AutomaticImport"] == False:
 		log.verboseLog("AutomaticImport set to false! Iterating over manually-defined files from Config.json!")
-		fileIter = cpkConfig["Files"]
+	fileIter = os.listdir(wDir) if cpkConfig["AutomaticImport"] else cpkConfig["Files"]
 	for fil in fileIter:
 		print("Packing", fil, "into CPK...")
 		if not os.path.isfile(os.path.join(whDir, fil + '.bin')):
@@ -55,7 +57,7 @@ def packFiles(wDir, whDir, wxDir):
 		# append actual file size to header (as LE)
 		cFileSize = os.path.getsize(cFile)
 		cpkBytes += struct.pack('<I', cFileSize)
-		# copy last file header to append EOF header thing
+		# copy last file header to append EOF null header
 		# when NoNullHeader is set to false in the cpk config
 		if cpkConfig["NoNullHeader"] != True:
 			cHeader = b'\x00' + cpkBytes[-0xFF:-4] + b'\x00\x00\x00\x00'
@@ -72,7 +74,7 @@ def packFiles(wDir, whDir, wxDir):
 
 def packCPK(input, outDir):
 	# Get output file path; output files in all-caps
-	# since the game's files are named in all-caps
+	# since loose CPK's in P3F are all-caps
 	outputFile = None
 	if isinstance(outDir, str):
 		outputFile = os.path.join(outDir, input[input.rindex(os.sep)+len(os.sep):].upper() + '.CPK')
@@ -81,8 +83,7 @@ def packCPK(input, outDir):
 	if os.path.isfile(outputFile) and log.args.newonly:
 		log.alreadyExist(outputFile)
 		return
-	# get files and headers folder as
-	# vars for easy repeated access
+	# get files and headers folder as vars for repeated access
 	filesDir = os.path.join(input, "Files")
 	headersDir = os.path.join(input, "Headers")
 	exDir = os.path.join(input, "ExtraData")
@@ -99,6 +100,6 @@ def packCPK(input, outDir):
 				cpkOut.write(cpkData)
 		else:
 			# TODO: Add ability to generate generic header, if that's even a good idea
-			print("Warning! Could not locate Headers directory in", headersDir + "! Folder will not be packed into CPK!")
+			print("Warning! Could not locate Headers directory in", headersDir + "! Folder won't be packed into CPK!")
 	else:
-		print("Error! Could not locate Files directory in", filesDir + "! Folder will not be packed into CPK!")
+		print("Error! Could not locate Files directory in", filesDir + "! Folder can't be packed into CPK!")
