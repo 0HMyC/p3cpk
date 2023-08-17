@@ -16,7 +16,7 @@ The stored file's bytes follow immediately afterward.
 ## File Byte Alignment
 While the file size listed in the header data is accurate for how large the file is, some files need to be padded in order to reach one of multiple different byte alignments. Some files appear to place actual file data in this padding (Such as C04_1204.CPK, which seems to place Single precision floats within this supposed padding,) indicating it serves a purpose beyond just aligning the file correctly. These files are the exception, however, as most files either have null bytes in this extra data, or have repeated bytes with no clear purpose, meaning that the purpose behind the file padding is still unknown as of writing. 
 
-The byte alignments appear to be based on the least significant byte `(0x000000FF)`, and the known possible hex values for the alignments are as follows:
+The byte alignments appear to be based on the least significant byte `(0xFF000000 Little-Endian)`, and the known possible hex values for the alignments are as follows:
 
 | Alignments |
 | ---------- |
@@ -24,6 +24,8 @@ The byte alignments appear to be based on the least significant byte `(0x000000F
 | 0x40       |
 | 0x80       |
 | 0xC0       |
+
+Files that would exceed the highest possible alignment of 0xC0 are padded to the next increment of 0x40, effectively meaning it is padded to the next 0x00 alignment.
 
 ## End of CPK file
 CPK Files typically end with a "null header," which is a duplicated version of the actual last file's header with the first character of the file name replaced with a null byte (null terminating it early,) and the file size is set to zero. However, this null header is not actually necessary for the game to know when the file has ended, so it is perfectly fine to have CPK files without the null header at the end.
