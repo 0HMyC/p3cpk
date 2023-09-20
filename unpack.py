@@ -5,18 +5,19 @@ import json
 
 initPath = None
 
-def findCPKS(start, outDir):
+def findCPKS(start, outDir, recursive):
 	global initPath # Python plz
 	if initPath == None:
 		initPath = start
 	for filFol in os.listdir(start):
 		cur = os.path.join(start, filFol)
 		# Check if we need to search more folders, or extract a CPK.
-		if os.path.isdir(cur):
-			findCPKS(cur, outDir)
+		# Only do so if recursive search argument has been passed.
+		if os.path.isdir(cur) and recursive:
+			findCPKS(cur, outDir, recursive)
 		# TODO: better comparision method than .lower()?
 		elif os.path.isfile(cur) and cur.lower().endswith('.cpk'):
-			log.compliantLog("Unpacking", cur)
+			log.compliantLog("\nUnpacking", cur)
 			unpackCPK(cur, outDir)
 
 def createOutDir(desOut, inFile):
@@ -36,7 +37,7 @@ def createOutDir(desOut, inFile):
 	return outFol
 
 def checkExists(path):
-	if os.path.isfile(path) and logs.args.newonly:
+	if os.path.isfile(path) and log.args.newonly:
 		return True
 	return False
 
@@ -60,8 +61,7 @@ def unpackCPK(input, outDir):
 			break
 		cFile = cpkBytes[i+0x100:(i+0x100)+cHeader["FileSize"]]
 		# TODO: Sometimes the file "padding" contains extra data... What and why is this? 
-		# NOTE: File sizes preceded by 0x00007F4E appear to contain floats at the end,
-		# sometimes? Figure that out!!!
+		# NOTE: File sizes preceded by 0x00007F4E appear to contain floats at the end, sometimes? Figure that out!!!
 		# Create output directories that we need
 		cExData = None
 		if cHeader["FilePadding"] >= 1:
@@ -75,26 +75,23 @@ def unpackCPK(input, outDir):
 		os.makedirs(cDirs, exist_ok=True)
 		cpkConfig["Files"].append(cHeader["FileName"])
 		cDirs = os.path.join(cDirs, cHeader["FileName"])
-		if checkExists(cDirs):
-			continue
-		with open(cDirs, "wb") as cFileOut: # Write file bytes
-			cFileOut.write(cFile)
+		if not checkExists(cDirs):
+			with open(cDirs, "wb") as cFileOut: # Write file bytes
+				cFileOut.write(cFile)
 		cDirs = os.path.join(outputFolder, "Headers")
 		os.makedirs(cDirs, exist_ok=True)
 		cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
-		if checkExists(cDirs):
-			continue
-		with open(cDirs, "wb") as headerOut:
-			headerOut.write(cHeader["Unknown0"])
+		if not checkExists(cDirs):
+			with open(cDirs, "wb") as headerOut:
+				headerOut.write(cHeader["Unknown0"])
 		# Only write extra data if there's even any in the file
 		if cExData != None:
 			cDirs = os.path.join(outputFolder, "ExtraData")
 			os.makedirs(cDirs, exist_ok=True)
 			cDirs = os.path.join(cDirs, cHeader["FileName"] + '.bin')
-			if checkExists(cDirs):
-				continue
-			with open(cDirs, "wb") as exOut:
-				exOut.write(cExData)
+			if not checkExists(cDirs):
+				with open(cDirs, "wb") as exOut:
+					exOut.write(cExData)
 	jsPath = os.path.join(outputFolder, "Config.json")
 	if os.path.isfile(jsPath) and log.args.newonly:
 		log.alreadyExist(jsPath)
