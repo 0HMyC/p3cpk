@@ -1,10 +1,10 @@
 # CPK Files
-CPK files are a custom file type that appears to have been created by ATLUS, that are used to pack multiple files within. It is important to not that they should not be confused with Criware CPK files, which are an entirely different format and only coincidentally use the same file extension.
+CPK files are a custom file type that appears to have been created by ATLUS, which are used to pack multiple files within. It is important to note that they should not be confused with Criware CPK files, which are an entirely different format and only coincidentally use the same file extension.
 
 Typically, the types of files packed into a CPK will be .CIN and .TMX files, indicating they likely serve a similar purpose to .EPL files with a model (2D or 3D) inside (such as the Critical/All-Out-Attack Cut-Ins or any 3D models in Persona 3 Portable's events) in the Persona games from Persona 4 ownwards.
 
 ## Packed File Header
-Each file stored in a CPK is preceeded by a header that is 0x100 bytes long. The following table lists the currently understood values of this header.
+Each file stored in a CPK is preceeded by a header that is `0x100` bytes long. The following table lists the currently understood values of this header.
 
 | Offset   | Datatype     | Length (bytes)   | Description                          |
 | -------- | ------------ | ---------------- | ------------------------------------ |
