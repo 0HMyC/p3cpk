@@ -1,3 +1,6 @@
+# CINDOC Branch
+This branch is primarily intended to be used for adding documentation on the CIN file format found in Persona 3 FES.
+
 # p3cpk
 A Python script that allows for extracting and packing Persona 3's CPK files.
 
