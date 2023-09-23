@@ -36,7 +36,7 @@ CIN files appear to be a custom type of type which includes model data and/or mo
 ## Anatomy of a CIN
 Currently, little to nothing is known about the data structure or how data is contained within CIN files. What is known is that most CIN files begin with a 0x20 byte long header of some sort, containing multiple unknown values.
 
-The speculated structure of this header is as follows:
+The assumed structure of this header is as follows:
 
 | Offset | Datatype | Description |
 |--------|----------|-------------|
