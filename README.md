@@ -14,7 +14,7 @@ To unpack all .CPK files in a folder:
 
 To pack a folder into a .CPK file:
 
-`python p3cpk.py -f "folder\path [-p|--pack]"`
+`python p3cpk.py -f "folder\path" [-p|--pack]`
 
 You can optionally specify a folder to output extracted or packed files to, like so:
 
