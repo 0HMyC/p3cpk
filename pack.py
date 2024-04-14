@@ -6,6 +6,33 @@ import json
 
 cpkConfig = None
 
+# search through folder to find
+# unpacked CPK's to pack
+def findCPKS(start, out, recursive):
+	mirrorOut = out # init var
+	for filfol in os.listdir(start):
+		cur = os.path.join(start, filfol)
+		if os.path.isdir(cur):
+			# always skip past unpacked CPK data folders;
+			# there should never be CPK's to pack in there
+			if (cur == "ExtraData") or (cur == "Files") or (cur == "Headers"):
+				continue
+			if os.path.isfile(os.path.join(cur, "Config.json")):
+				configFile = loadConfigJson(cur)
+				# unlikely most files named "Config.json" that aren't ours
+				# would have this key in it
+				if "NoNullHeader" in configFile:
+					os.makedirs(mirrorOut, exist_ok=True) # only create dirs when we will write files
+					packCPK(cur, mirrorOut, loadedConfig=configFile)
+			else:
+				mirrorOut = os.path.join(out, filfol) # only add searched folders
+				# If script is run with recursive argument,
+				# Search through folders
+				if recursive:
+					findCPKS(cur, mirrorOut, recursive)
+				else:
+					return
+
 def getPaddingBytes(cnt):
 	log.verboseLog('Generating file padding! Amt:', cnt)
 	return b'\x00' * cnt
@@ -71,8 +98,30 @@ def packFiles(wDir, whDir, wxDir):
 		# end of loop, start over with new file
 	cpkBytes += cHeader
 	return cpkBytes
+	
+def loadConfigJson(basePath):
+	jsData = None
+	with open(os.path.join(basePath, "Config.json"), "r") as jsStream:
+		jsData = json.load(jsStream)
+	return jsData
 
-def packCPK(input, outDir):
+def fixConfig(cfg):
+	if not "NoNullHeader" in cfg:
+		cfg["NoNullHeader"] = False
+		log.verboseLog("Config.json missing NoNullHeader key! Using default value! (False)")
+	if not "GenerateExtraData" in cfg:
+		cfg["GenerateExtraData"] = False
+		log.verboseLog("Config.json missing GenerateExtraData key! Using default value! (False)")
+	if not "AutomaticImport" in cfg:
+		cfg["AutomaticImport"] = True
+		log.verboseLog("Config.json missing AutomaticImport key! Using default value! (True)")
+	if not "Files" in cfg:
+		cfg["Files"] = []
+		cfg["AutomaticImport"] = True
+		log.verboseLog("Config.json missing Files key! Using empty array and Forcing AutomaticImport!")
+	return cfg
+
+def packCPK(input, outDir, loadedConfig=None):
 	# Get output file path; output files in all-caps
 	# since loose CPK's in P3F are all-caps
 	outputFile = None
@@ -88,11 +137,14 @@ def packCPK(input, outDir):
 	headersDir = os.path.join(input, "Headers")
 	exDir = os.path.join(input, "ExtraData")
 	global cpkConfig
-	with open(os.path.join(input, "Config.json"), "r") as jsStream:
-		cpkConfig = json.load(jsStream)
+	if loadedConfig == None:
+		cpkConfig = loadConfigJson(input)
+	else:
+		cpkConfig = loadedConfig
 	if os.path.isdir(filesDir):
 		if os.path.isdir(headersDir):
-			print("Packing", input, "into CPK file...")
+			print("\nPacking", input, "into CPK file...")
+			cpkConfig = fixConfig(cpkConfig)
 			# pack files into cpk
 			cpkData = packFiles(filesDir, headersDir, exDir)
 			# write file data to disk
@@ -100,6 +152,6 @@ def packCPK(input, outDir):
 				cpkOut.write(cpkData)
 		else:
 			# TODO: Add ability to generate generic header, if that's even a good idea
-			print("Warning! Could not locate Headers directory in", headersDir + "! Folder won't be packed into CPK!")
+			print("\nWarning! Could not locate Headers directory in", headersDir + "! Folder won't be packed into CPK!")
 	else:
-		print("Error! Could not locate Files directory in", filesDir + "! Folder can't be packed into CPK!")
+		print("\nError! Could not locate Files directory in", filesDir + "! Folder can't be packed into CPK!")

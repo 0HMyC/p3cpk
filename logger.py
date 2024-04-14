@@ -10,4 +10,4 @@ def verboseLog(*inputs):
 		
 def alreadyExist(path):
 	if args.verbose:
-		print(path, "already exists! Will not overwrite!")
+		print('\n' + path, "already exists! Will not overwrite!")

@@ -15,6 +15,7 @@ parser.add_argument('-o', '--output', help="Override the output path for files."
 parser.add_argument('-v', '--verbose', help="Prints extra messages when extracting files. Useful for debugging.", action='store_true')
 parser.add_argument('-q', '--quiet', help="Supresses some messages from being printed. Useful if you want fewer messages in the console.", action='store_true')
 parser.add_argument('-n', '--newonly', help="Only allows new files to be written; Prevents overwriting already extracted files.", action='store_true')
+parser.add_argument('-r', '--recursive', help="If passing a folder to script, enables recursive search for folders contained within for CPK's to pack/unpack.", action='store_true')
 args = parser.parse_args()
 
 # set verbose logging mode
@@ -60,6 +61,8 @@ if isinstance(args.file, str):
 			unpack.unpackCPK(args.file, args.output)
 elif isinstance(args.folder, str):
 	if args.unpack:
-		unpack.findCPKS(args.folder, args.output)
+		unpack.findCPKS(args.folder, args.output, args.recursive)
+		print("Unpacked all possible CPK files!")
 	else:
-		pack.packCPK(args.folder, args.output)
+		pack.findCPKS(args.folder, args.output, args.recursive)
+		print("Packed all possible CPK folders!")
