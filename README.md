@@ -16,6 +16,14 @@ To pack a folder into a .CPK file:
 
 `python p3cpk.py -f "folder\path" [-p|--pack]`
 
+To convert a single .CPK file into a .PAC file:
+
+`python p3cpk.py -i "path\to\file" [-c|--convert]`
+
+To convert all .CPK files in a folder into .PAC files:
+
+`python p3cpk.py -f "folder\path" [-c|--convert]`
+
 You can optionally specify a folder to output extracted or packed files to, like so:
 
 `python p3cpk.py [-i "file"|-f "folder"] [-u|-p] [-o|--output] "output\folder"`
