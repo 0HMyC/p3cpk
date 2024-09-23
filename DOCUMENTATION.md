@@ -17,18 +17,7 @@ The stored files bytes follow immediately afterward.
 ## File Alignment
 While the file size listed in the header data is accurate for how large the file is, some files need to be padded in order to reach one of multiple byte alignments. Typically, this is the result of poor packing (such as a CIN file that was manually extracted from another CPK being packed into a different CPK as-is) causing a mismatch between the actual size of a file and the data stored in the file, or the size of the file falling just short or ahead of an expected alignment.
 
-In both cases, extra data (typically null byte `0x00` padding) will have been added to the file in order to force the data in the CPK to align correctly.
-
-The byte alignments appear to be based on the least significant byte `(0xFF000000 Little-Endian)`, and the known possible hex values for the alignments are as follows:
-
-| Alignments   |
-| ------------ |
-| `0x00`       |
-| `0x40`       |
-| `0x80`       |
-| `0xC0`       |
-
-Files that would exceed the highest possible alignment of `0xC0` are padded to the next alignment of `0x00`.
+In both cases, extra data (typically null byte `0x00` padding) will have been added to the file in order to force the data in the CPK to align correctly. All data is aligned to increments of `0x40`.
 
 ## End of a CPK file
 CPK Files typically end with a "null header," which is a duplicated version of the actual last file's header with the first character of the file name replaced with a null byte (null terminating it early,) and the file size is set to zero. However, this null header is not actually necessary for the game to know when the file has ended, so it is technically possible to use CPK files with no null header; however, this likely comes with a risk of the game crashing depending on where the CPK is loaded into memory and if any data is stored immediately after it.
